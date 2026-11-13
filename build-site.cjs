@@ -1,0 +1,48 @@
+const fs = require('fs');
+const path = require('path');
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const nav = [['index.html','Trang chủ'],['business-plan.html','Kế hoạch kinh doanh'],['financial-analysis.html','Phân tích tài chính'],['swot.html','Phân tích SWOT'],['five-forces.html','5 áp lực cạnh tranh'],['reflections.html','Phản hồi đọc sách'],['action-plan.html','Kế hoạch 90 ngày']];
+function page(file,title,subtitle,content,active=file){
+fs.writeFileSync(file,`<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="${esc(subtitle)}"><title>${esc(title)} · Hồ sơ khởi nghiệp</title><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#main">Đến nội dung chính</a><aside class="sidebar"><a class="brand" href="index.html"><span class="brand-icon">↗</span><span>HỒ SƠ<br><b>KHỞI NGHIỆP</b></span></a><p class="nav-label">KHÁM PHÁ DỰ ÁN</p><nav aria-label="Điều hướng chính">${nav.map(([url,label],i)=>`<a href="${url}" ${active===url?'aria-current="page"':''}><span class="nav-number">0${i+1}</span>${label}</a>`).join('')}</nav><div class="sidebar-note"><span class="dot"></span> Nội dung từ Markdown<br><small>Giữ nguyên nguồn và góc nhìn.</small></div></aside><div class="shell"><header class="topbar"><span>DỰ ÁN KHỞI NGHIỆP</span><a href="reflections.html">Thư viện phản hồi ↗</a></header><main id="main"><div class="page-heading"><p class="eyebrow">HỒ SƠ DỰ ÁN / ${esc(title.toLocaleUpperCase('vi'))}</p><h1>${esc(title)}</h1><p class="lead">${esc(subtitle)}</p></div>${content}</main><footer><span>Hồ sơ dự án khởi nghiệp</span><a href="#main">Về đầu trang ↑</a></footer></div></body></html>`);
+}
+const missing = `<div class="notice"><span class="notice-icon">!</span><div><strong>Chưa có nguồn kế hoạch kinh doanh</strong><p>Không tìm thấy <code>business_plan.md</code> trong dự án. Nội dung kinh doanh đang chờ bổ sung từ tệp nguồn chính thức.</p></div></div>`;
+const empty = text => `<div class="empty"><span class="empty-symbol">◇</span><h2>Đang chờ dữ liệu nguồn</h2><p>${text}</p></div>`;
+const summaries = [
+['24040025','quynh-tram','Qua AI Superpowers, Quỳnh Trâm nhấn mạnh sự hợp tác giữa con người và AI, việc chủ động thích nghi với thay đổi nghề nghiệp và giữ sự đồng cảm trong giao tiếp. Bài phản hồi đề cao tư duy phản biện, kiểm chứng thông tin và sử dụng công nghệ có trách nhiệm.'],
+['24040026','bao-tran','Bảo Trân nhìn nhận AI là phương tiện hỗ trợ học tập, sáng tạo và công việc. Bài phản hồi nhấn mạnh việc tự suy nghĩ trước khi tham khảo AI, kiểm tra thông tin, giữ dấu ấn cá nhân và sự chân thành trong giao tiếp.'],
+['24040045','kim-chau','Từ Life 3.0, Kim Châu tâm đắc với AI Alignment: mục tiêu của AI cần phù hợp với giá trị con người. Bài phản hồi nhấn mạnh trách nhiệm định hướng công nghệ, khả năng đặt câu hỏi, kiểm chứng và duy trì tư duy độc lập.']
+];
+const files=fs.readdirSync('Reflections').filter(f=>f.endsWith('.md')).sort();
+const records=files.map(file=>{
+ const raw=fs.readFileSync(path.join('Reflections',file),'utf8');
+ const name=raw.match(/^Họ và tên:\s*(.+)$/m)?.[1].trim();
+ const book=raw.match(/^Tên sách:\s*(.+)$/m)?.[1].trim();
+ const author=raw.match(/^Tác giả:\s*(.+)$/m)?.[1].trim();
+ const summary=summaries.find(s=>file.startsWith(s[0]));
+ return {file,raw,name,book,author,slug:summary?summary[1]:'chua-co-tieu-de',summary:summary?summary[2]:'Tệp chỉ có tiêu đề, chưa có nội dung phản hồi hoặc tên thành viên.'};
+});
+function card(r,i){return `<article class="card reflection-card"><div class="card-top"><span class="book-icon">▤</span><span class="tag">${r.name?'BÀI PHẢN HỒI':'CHƯA CÓ NỘI DUNG'}</span></div><p class="eyebrow">${r.author?esc(r.author):'TỆP CHƯA HOÀN THIỆN'}</p><h2>${esc(r.book||'Chưa có tiêu đề')}</h2><p class="member">${esc(r.name||'Chưa có tên trong nguồn')}</p><p>${esc(r.summary)}</p><a class="text-link" href="reflection-${r.slug}.html">${r.name?'Đọc bài đầy đủ':'Mở trang tệp'} <span>↗</span></a></article>`;}
+page('index.html','Từ ý tưởng đến hành động.','Không gian tổng hợp kế hoạch khởi nghiệp và những góc nhìn từ việc đọc sách.',`<section class="hero"><div><span class="pill">HỒ SƠ DỰ ÁN</span><h2>Một nơi để nhìn rõ<br>toàn bộ dự án.</h2><p>Kế hoạch kinh doanh, phân tích chiến lược và phản hồi đọc sách của từng thành viên.</p><a class="button" href="business-plan.html">Khám phá kế hoạch <span>↗</span></a><a class="hero-link" href="reflections.html">Đọc phản hồi thành viên →</a></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-core">↗</div><span class="art-label">Ý TƯỞNG · PHÂN TÍCH · HÀNH ĐỘNG</span></div></section>${missing}<div class="section-heading"><div><p class="eyebrow">KHÁM PHÁ</p><h2>Các góc nhìn của dự án</h2></div></div><div class="grid three">${nav.filter(([u])=>!['index.html','reflections.html'].includes(u)).map(([u,t],i)=>`<a class="card route-card" href="${u}"><span class="route-index">0${i+1} <span>↗</span></span><h3>${t}</h3><p>Chờ nội dung từ business_plan.md</p></a>`).join('')}</div><div class="section-heading"><div><p class="eyebrow">GÓC NHÌN THÀNH VIÊN</p><h2>Đọc sách & suy ngẫm</h2></div><a href="reflections.html">Xem tất cả →</a></div><div class="grid three">${records.filter(r=>r.name).map(card).join('')}</div>`);
+page('business-plan.html','Kế hoạch kinh doanh','Nguồn chính thức cho ý tưởng, mô hình và định hướng kinh doanh của dự án.',missing+empty('Cần bổ sung business_plan.md để trình bày kế hoạch kinh doanh.'));
+page('financial-analysis.html','Phân tích tài chính','Các chỉ số và trực quan hóa tài chính dựa trên số liệu trong kế hoạch kinh doanh.',missing+empty('Chưa có số liệu để tạo KPI cards hoặc biểu đồ tài chính.'));
+const swot=[['S','Điểm mạnh','Strengths'],['W','Điểm yếu','Weaknesses'],['O','Cơ hội','Opportunities'],['T','Thách thức','Threats']];
+page('swot.html','Phân tích SWOT','Bốn góc nhìn chiến lược từ kế hoạch kinh doanh.',missing+`<div class="grid two swot-grid">${swot.map(([s,t,en],i)=>`<article class="card swot swot-${i}"><span class="swot-letter">${s}</span><p class="eyebrow">${en}</p><h2>${t}</h2><p>Chưa có nội dung từ business_plan.md.</p></article>`).join('')}</div>`);
+const forces=['Mức độ cạnh tranh trong ngành','Nguy cơ từ đối thủ mới gia nhập','Quyền thương lượng của nhà cung cấp','Quyền thương lượng của khách hàng','Nguy cơ từ sản phẩm hoặc dịch vụ thay thế'];
+page('five-forces.html','5 áp lực cạnh tranh của Porter','Tách riêng từng yếu tố để theo dõi nội dung phân tích trong nguồn chính thức.',missing+`<div class="grid two forces">${forces.map((t,i)=>`<article class="card force"><span class="force-number">0${i+1}</span><div><h2>${t}</h2><p>Chưa có nội dung phân tích từ business_plan.md.</p></div></article>`).join('')}</div>`);
+page('action-plan.html','Kế hoạch hành động 90 ngày','Các giai đoạn và cột mốc sẽ được trình bày theo kế hoạch kinh doanh.',missing+empty('Chưa có mốc thời gian hoặc nhiệm vụ từ business_plan.md để dựng timeline.'));
+page('reflections.html','Phản hồi đọc sách','Mỗi bài viết là một góc nhìn riêng. Khám phá suy ngẫm của từng thành viên.',`<div class="section-heading"><div><p class="eyebrow">THƯ VIỆN THÀNH VIÊN</p><h2>Những điều đọng lại sau trang sách</h2></div></div><div class="grid three">${records.filter(r=>r.name).map(card).join('')}</div><div class="section-heading"><h2>Tệp chưa hoàn thiện</h2></div><div class="grid three">${records.filter(r=>!r.name).map(card).join('')}</div><p class="source-note">Nguồn: thư mục Reflections/. Các tệp giống hệt trong Business-plan/Reflections/ được gộp, không hiển thị trùng bài.</p>`);
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>');}
+function markdown(raw){
+ const lines=raw.replace(/^#\s+\d+\s*\r?\n/,'').split(/\r?\n/);let out='',para=[],list='';
+ const flush=()=>{if(para.length){out+='<p>'+para.map(inline).join('<br>')+'</p>';para=[];}};
+ const close=()=>{if(list){out+=`</${list}>`;list='';}};
+ for(const original of lines){const line=original.trim();if(!line){flush();close();continue;}if(line==='<aside>'||line==='</aside>'){flush();close();continue;}
+ const h=line.match(/^(#{1,6})\s+(.+)/);const li=line.match(/^([-*]|\d+\.)\s+(.+)/);
+ if(h){flush();close();const level=Math.min(4,h[1].length+1);out+=`<h${level}>${inline(h[2])}</h${level}>`;}
+ else if(li){flush();const type=li[1].endsWith('.')?'ol':'ul';if(type!==list){close();out+=`<${type}>`;list=type;}out+=`<li>${inline(li[2])}</li>`;}
+ else if(line.startsWith('>')){flush();close();if(line.slice(1).trim())out+=`<blockquote>${inline(line.slice(1).trim())}</blockquote>`;}
+ else {close();para.push(line);}
+ }flush();close();return out;
+}
+for(const r of records){const source='Reflections/'+r.file;page(`reflection-${r.slug}.html`,r.name||'Chưa có tiêu đề',r.book||'Tệp chưa có nội dung phản hồi.',`<a class="back-link" href="reflections.html">← Tất cả bài phản hồi</a><div class="article-layout"><article class="article card">${markdown(r.raw)}</article><aside class="article-meta card"><p class="eyebrow">NGUỒN BÀI VIẾT</p><h2>${esc(r.name||'Chưa có tên trong nguồn')}</h2>${r.author?`<p>Tác giả sách<br><strong>${esc(r.author)}</strong></p>`:''}<p>${esc(r.summary)}</p><a class="text-link" href="${encodeURI(source)}">Mở Markdown nguồn ↗</a><small class="source-path">${esc(source)}</small></aside></div>`,'reflections.html');}
+console.log('Created 11 HTML pages from 4 unique reflection sources. Business source missing.');
